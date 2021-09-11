@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -6,8 +6,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
 using Monitorian.Core.Helper;
 
 namespace Monitorian.Core.Models.Monitor
@@ -190,9 +190,19 @@ namespace Monitorian.Core.Models.Monitor
 			Contrast = 0x12,
 			SpeakerVolume = 0x62,
 			PowerMode = 0xD6,
+			InputSource = 0x60
 		}
 
-		public static IEnumerable<PhysicalItem> EnumeratePhysicalMonitors(IntPtr monitorHandle, bool verbose = false)
+		private enum InputSource : uint
+		{
+			DP1 = 15,
+			DP2 = 16,
+			HDMI1 = 17,
+			HDMI2 = 18,
+			TypeC = 27
+		}
+
+		public static IEnumerable<PhysicalItem> EnumeratePhysicalMonitors(IntPtr monitorHandle, bool verbose = true)
 		{
 			if (!GetNumberOfPhysicalMonitorsFromHMONITOR(
 				monitorHandle,
@@ -201,6 +211,7 @@ namespace Monitorian.Core.Models.Monitor
 				Debug.WriteLine($"Failed to get the number of physical monitors. {Error.GetMessage()}");
 				yield break;
 			}
+
 			if (count == 0)
 			{
 				yield break;
@@ -265,6 +276,7 @@ namespace Monitorian.Core.Models.Monitor
 					var capabilitiesString = buffer.ToString();
 					var vcpCodes = EnumerateVcpCodes(capabilitiesString).ToArray();
 
+					var inputSourcePossibleValues = ParseInputSourcePossibleValues(capabilitiesString).ToArray();
 					return new MonitorCapability(
 						isHighLevelBrightnessSupported: isHighLevelSupported,
 						isLowLevelBrightnessSupported: vcpCodes.Contains((byte)VcpCode.Luminance),
@@ -309,6 +321,19 @@ namespace Monitorian.Core.Models.Monitor
 				{
 					Marshal.FreeHGlobal(dataPointer);
 				}
+			}
+		}
+
+
+		private static IEnumerable<byte> ParseInputSourcePossibleValues(string source)
+		{
+			Regex rgx = new Regex(@"60\((.+?)\)");
+			string result = rgx.Match(source).ToString().Trim();
+			string[] resultList = result.Substring(3, result.Length - 4)
+				.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+			foreach (var s in resultList)
+			{
+				yield return byte.Parse(s, NumberStyles.HexNumber, NumberFormatInfo.InvariantInfo);
 			}
 		}
 
@@ -481,7 +506,13 @@ namespace Monitorian.Core.Models.Monitor
 			return SetVcpValue(physicalMonitorHandle, VcpCode.Contrast, contrast);
 		}
 
-		private static AccessResult SetVcpValue(SafePhysicalMonitorHandle physicalMonitorHandle, VcpCode vcpCode, uint value)
+		public static AccessResult SetInputSource(SafePhysicalMonitorHandle physicalMonitorHandle, uint inputSourceId)
+		{
+			return SetVcpValue(physicalMonitorHandle, VcpCode.InputSource, inputSourceId);
+		}
+
+		private static AccessResult SetVcpValue(SafePhysicalMonitorHandle physicalMonitorHandle, VcpCode vcpCode,
+			uint value)
 		{
 			if (!EnsurePhysicalMonitorHandle(physicalMonitorHandle))
 				return AccessResult.Failed;

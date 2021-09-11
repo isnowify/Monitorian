@@ -147,6 +147,9 @@
   <data name="EnableUnison" xml:space="preserve">
     <value>Enable moving in unison</value>
   </data>
+  <data name="EnableInputSource" xml:space="preserve">
+    <value>Show changing in input source</value>
+  </data>
   <data name="MakeOperation" xml:space="preserve">
     <value>Make operation log</value>
   </data>

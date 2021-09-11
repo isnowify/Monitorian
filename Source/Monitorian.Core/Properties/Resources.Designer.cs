@@ -133,6 +133,15 @@ namespace Monitorian.Core.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show changing in input source.
+        /// </summary>
+        public static string EnableInputSource {
+            get {
+                return ResourceManager.GetString("EnableInputSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable changing adjustable range.
         /// </summary>
         public static string EnableRange {

@@ -135,6 +135,9 @@
   <data name="EnableRange" xml:space="preserve">
     <value>启用调节范围设置</value>
   </data>
+  <data name="DeferChange" xml:space="preserve">
+    <value>直到停止滑动时才做出更改</value>
+  </data>
   <data name="EnableUnison" xml:space="preserve">
     <value>启用同步调节</value>
   </data>

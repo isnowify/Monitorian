@@ -128,6 +128,14 @@
 						  IsChecked="{Binding Settings.EnablesContrast}"/>
 		</ContentControl>
 
+		<ContentControl Style="{StaticResource MenuItemStyle}">
+			<ToggleButton Padding="8,4"
+			              Style="{StaticResource CheckButtonItemStyle}"
+			              FontSize="13"
+			              Content="{x:Static properties:Resources.EnableInputSource}"
+			              IsChecked="{Binding Settings.EnableInputSource}"/>
+		</ContentControl>
+
 		<Separator Style="{StaticResource MenuSeparatorStyle}"/>
 
 		<!-- Close -->
