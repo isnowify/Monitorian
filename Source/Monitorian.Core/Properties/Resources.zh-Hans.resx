@@ -141,6 +141,12 @@
   <data name="EnableUnison" xml:space="preserve">
     <value>启用同步调节</value>
   </data>
+  <data name="EnableInputSource" xml:space="preserve">
+    <value>启用输入源切换</value>
+  </data>
+  <data name="SwitchInputSource" xml:space="preserve">
+    <value>切换输入源</value>
+  </data>
   <data name="MakeOperation" xml:space="preserve">
     <value>记录操作日志</value>
   </data>

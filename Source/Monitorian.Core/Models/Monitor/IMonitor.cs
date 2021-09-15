@@ -17,16 +17,19 @@ namespace Monitorian.Core.Models.Monitor
 		bool IsReachable { get; }
 		bool IsBrightnessSupported { get; }
 		bool IsContrastSupported { get; }
-
+		byte[] InputSourcePossibleValues { get; }
 		int Brightness { get; }
 		int BrightnessSystemAdjusted { get; }
 
+		bool IsInputSourceSupported { get; }
+		AccessResult SetInputSource(int inputSource);
 		AccessResult UpdateBrightness(int brightness = -1);
 		AccessResult SetBrightness(int brightness);
 
 		int Contrast { get; }
-
+		int InputSource{ get; }
 		AccessResult UpdateContrast();
+		AccessResult UpdateInputSource();
 		AccessResult SetContrast(int contrast);
 	}
 

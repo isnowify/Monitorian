@@ -169,6 +169,11 @@ namespace Monitorian.Core
 						m.IsRangeChanging = false;
 
 					break;
+				case nameof(Settings.EnablesInputSource) when !Settings.EnablesInputSource:
+					foreach (var m in Monitors)
+						m.IsInputSourceSwitching = false;
+
+					break;
 
 				case nameof(Settings.EnablesContrast) when !Settings.EnablesContrast:
 					foreach (var m in Monitors)
@@ -301,6 +306,7 @@ namespace Monitorian.Core
 							{
 								return Task.Run(() =>
 								{
+									x.UpdateInputSource();
 									if (x.UpdateBrightness())
 									{
 										x.IsTarget = true;

@@ -98,6 +98,18 @@ namespace Monitorian.Core.Models
 		private bool _enablesRange;
 
 		/// <summary>
+		/// Whether to enable switching input source
+		/// </summary>
+		[DataMember]
+		public bool EnablesInputSource
+		{
+			get => _enablesInputSource;
+			set => SetPropertyValue(ref _enablesInputSource, value);
+		}
+		private bool _enablesInputSource;
+
+
+		/// <summary>
 		/// Whether to enable changing contrast
 		/// </summary>
 		[DataMember]

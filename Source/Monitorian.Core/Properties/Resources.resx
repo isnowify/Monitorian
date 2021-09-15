@@ -148,7 +148,10 @@
     <value>Enable moving in unison</value>
   </data>
   <data name="EnableInputSource" xml:space="preserve">
-    <value>Show changing in input source</value>
+    <value>Show switching in input source</value>
+  </data>
+  <data name="SwitchInputSource" xml:space="preserve">
+    <value>Switch input source</value>
   </data>
   <data name="MakeOperation" xml:space="preserve">
     <value>Make operation log</value>

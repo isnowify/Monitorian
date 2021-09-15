@@ -133,7 +133,7 @@ namespace Monitorian.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show changing in input source.
+        ///   Looks up a localized string similar to Show switching in input source.
         /// </summary>
         public static string EnableInputSource {
             get {
@@ -282,6 +282,15 @@ namespace Monitorian.Core.Properties {
         public static string StatusReasonDdcNotEnabled {
             get {
                 return ResourceManager.GetString("StatusReasonDdcNotEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Switch input source.
+        /// </summary>
+        public static string SwitchInputSource {
+            get {
+                return ResourceManager.GetString("SwitchInputSource", resourceCulture);
             }
         }
         

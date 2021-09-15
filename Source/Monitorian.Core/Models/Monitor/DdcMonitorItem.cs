@@ -19,6 +19,9 @@ namespace Monitorian.Core.Models.Monitor
 		public override bool IsBrightnessSupported => _capability.IsBrightnessSupported;
 		public override bool IsContrastSupported => _capability.IsContrastSupported;
 
+		public override byte[] InputSourcePossibleValues => _capability.InputSourcePossibleValues;
+		public override bool IsInputSourceSupported => _capability.IsInputSourceSupported &&
+		                                               (_capability.InputSourcePossibleValues != null);
 		public DdcMonitorItem(
 			string deviceInstanceId,
 			string description,
@@ -90,6 +93,33 @@ namespace Monitorian.Core.Models.Monitor
 			else
 			{
 				this.Contrast = -1; // Default
+			}
+			return result;
+		}
+
+		public override AccessResult UpdateInputSource()
+		{
+			var (result, minimum, current, maximum) = MonitorConfiguration.GetInputSource(_handle);
+
+			if ((result.Status == AccessStatus.Succeeded))
+			{
+				this.InputSource = (int)current;
+			}
+			else
+			{
+				this.InputSource = -1; // Default
+			}
+			return result;
+		}
+
+		public override AccessResult SetInputSource(int inputSource)
+		{
+
+			var result = MonitorConfiguration.SetInputSource(_handle, (uint)inputSource);
+
+			if (result.Status == AccessStatus.Succeeded)
+			{
+				this.Contrast = inputSource;
 			}
 			return result;
 		}

@@ -20,7 +20,8 @@ namespace Monitorian.Core.Models.Monitor
 
 		public virtual bool IsBrightnessSupported => IsReachable;
 		public virtual bool IsContrastSupported => false;
-
+		public virtual bool IsInputSourceSupported => false;
+		public virtual byte[] InputSourcePossibleValues => null;
 		public MonitorItem(
 			string deviceInstanceId,
 			string description,
@@ -49,10 +50,11 @@ namespace Monitorian.Core.Models.Monitor
 		public abstract AccessResult SetBrightness(int brightness);
 
 		public int Contrast { get; protected set; } = -1;
-
+		public int InputSource { get; protected set; } = -1;
 		public virtual AccessResult UpdateContrast() => AccessResult.NotSupported;
 		public virtual AccessResult SetContrast(int contrast) => AccessResult.NotSupported;
-
+		public virtual AccessResult SetInputSource(int inputSource) => AccessResult.NotSupported;
+		public virtual AccessResult UpdateInputSource() => AccessResult.NotSupported;
 		public override string ToString()
 		{
 			return SimpleSerialization.Serialize(
@@ -67,7 +69,9 @@ namespace Monitorian.Core.Models.Monitor
 				(nameof(IsContrastSupported), IsContrastSupported),
 				(nameof(Brightness), Brightness),
 				(nameof(BrightnessSystemAdjusted), BrightnessSystemAdjusted),
-				(nameof(Contrast), Contrast));
+				(nameof(Contrast), Contrast),
+				(nameof(IsInputSourceSupported),IsInputSourceSupported),
+				(nameof(InputSource),InputSource));
 		}
 
 		#region IDisposable

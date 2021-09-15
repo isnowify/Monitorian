@@ -131,6 +131,9 @@
     <Compile Include="Views\Converters\StringToVisibilityConverter.cs" />
     <Compile Include="Views\Converters\VisibilityInverseConverter.cs" />
     <Compile Include="Views\Converters\VisibilityToBooleanFilterConverter.cs" />
+    <Compile Include="Views\InputSourceSelectionWindow.xaml.cs">
+      <DependentUpon>InputSourceSelectionWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Touchpad\TouchpadContact.cs" />
     <Compile Include="Views\Touchpad\TouchpadHelper.cs" />
     <Compile Include="Views\Touchpad\TouchpadTracker.cs" />
@@ -223,6 +226,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Views\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\InputSourceSelectionWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

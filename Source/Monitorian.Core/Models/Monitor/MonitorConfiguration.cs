@@ -193,8 +193,14 @@ namespace Monitorian.Core.Models.Monitor
 			InputSource = 0x60
 		}
 
-		private enum InputSource : uint
+		public enum InputSource : uint
 		{
+			VGA1 = 1,
+			VGA2 = 2,
+			DVI1 = 3,
+			DVI2 = 4,
+			CompositeVideo1 = 5,
+			CompositeVideo2 = 6,
 			DP1 = 15,
 			DP2 = 16,
 			HDMI1 = 17,
@@ -202,6 +208,7 @@ namespace Monitorian.Core.Models.Monitor
 			TypeC = 27
 		}
 
+		//TODO: verbose should be false in released version
 		public static IEnumerable<PhysicalItem> EnumeratePhysicalMonitors(IntPtr monitorHandle, bool verbose = true)
 		{
 			if (!GetNumberOfPhysicalMonitorsFromHMONITOR(
@@ -281,25 +288,32 @@ namespace Monitorian.Core.Models.Monitor
 						isHighLevelBrightnessSupported: isHighLevelSupported,
 						isLowLevelBrightnessSupported: vcpCodes.Contains((byte)VcpCode.Luminance),
 						isContrastSupported: vcpCodes.Contains((byte)VcpCode.Contrast),
+						isInputSourceSupported: vcpCodes.Contains((byte)VcpCode.InputSource),
+						inputSourcePossibleValues: ParseInputSourcePossibleValues(capabilitiesString).ToArray(),
 						capabilitiesString: (verbose ? capabilitiesString : null),
 						capabilitiesReport: (verbose ? MakeCapabilitiesReport(vcpCodes) : null),
-						capabilitiesData: (verbose && !vcpCodes.Any() ? GetCapabilitiesData(physicalMonitorHandle, capabilitiesStringLength) : null));
+						capabilitiesData: (verbose && !vcpCodes.Any()
+							? GetCapabilitiesData(physicalMonitorHandle, capabilitiesStringLength)
+							: null));
 				}
 			}
 			return new MonitorCapability(
 				isHighLevelBrightnessSupported: isHighLevelSupported,
 				isLowLevelBrightnessSupported: false,
+				isInputSourceSupported: false,
 				isContrastSupported: false);
 
 			static string MakeCapabilitiesReport(byte[] vcpCodes)
 			{
 				return $"Luminance: {vcpCodes.Contains((byte)VcpCode.Luminance)}, " +
-					   $"Contrast: {vcpCodes.Contains((byte)VcpCode.Contrast)}, " +
-					   $"Speaker Volume: {vcpCodes.Contains((byte)VcpCode.SpeakerVolume)}, " +
-					   $"Power Mode: {vcpCodes.Contains((byte)VcpCode.PowerMode)}";
+				       $"Contrast: {vcpCodes.Contains((byte)VcpCode.Contrast)}, " +
+				       $"Speaker Volume: {vcpCodes.Contains((byte)VcpCode.SpeakerVolume)}, " +
+				       $"Power Mode: {vcpCodes.Contains((byte)VcpCode.PowerMode)}, " +
+				       $"Input Source: {vcpCodes.Contains((byte)VcpCode.InputSource)}";
 			}
 
-			static byte[] GetCapabilitiesData(SafePhysicalMonitorHandle physicalMonitorHandle, uint capabilitiesStringLength)
+			static byte[] GetCapabilitiesData(SafePhysicalMonitorHandle physicalMonitorHandle,
+				uint capabilitiesStringLength)
 			{
 				var dataPointer = IntPtr.Zero;
 				try
@@ -444,6 +458,11 @@ namespace Monitorian.Core.Models.Monitor
 		public static (AccessResult result, uint minimum, uint current, uint maximum) GetContrast(SafePhysicalMonitorHandle physicalMonitorHandle)
 		{
 			return GetVcpValue(physicalMonitorHandle, VcpCode.Contrast);
+		}
+		public static (AccessResult result, uint minimum, uint current, uint maximum) GetInputSource(
+			SafePhysicalMonitorHandle physicalMonitorHandle)
+		{
+			return GetVcpValue(physicalMonitorHandle, VcpCode.InputSource);
 		}
 
 		private static (AccessResult result, uint minimum, uint current, uint maximum) GetVcpValue(SafePhysicalMonitorHandle physicalMonitorHandle, VcpCode vcpCode)
@@ -598,6 +617,8 @@ namespace Monitorian.Core.Models.Monitor
 			bool isHighLevelBrightnessSupported,
 			bool isLowLevelBrightnessSupported,
 			bool isContrastSupported,
+			bool isInputSourceSupported,
+			byte[] inputSourcePossibleValues = null,
 			string capabilitiesString = null,
 			string capabilitiesReport = null,
 			byte[] capabilitiesData = null)
@@ -606,6 +627,10 @@ namespace Monitorian.Core.Models.Monitor
 			this.IsLowLevelBrightnessSupported = isLowLevelBrightnessSupported;
 			this.IsContrastSupported = isContrastSupported;
 			this.CapabilitiesString = capabilitiesString;
+			this.IsInputSourceSupported = isInputSourceSupported;
+			this.InputSourcePossibleValues = (inputSourcePossibleValues is not null)
+				? inputSourcePossibleValues
+				: null;
 			this.CapabilitiesReport = capabilitiesReport;
 			this.CapabilitiesData = (capabilitiesData is not null) ? Convert.ToBase64String(capabilitiesData) : null;
 		}
