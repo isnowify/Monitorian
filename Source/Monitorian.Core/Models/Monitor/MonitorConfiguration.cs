@@ -283,7 +283,7 @@ namespace Monitorian.Core.Models.Monitor
 					var capabilitiesString = buffer.ToString();
 					var vcpCodes = EnumerateVcpCodes(capabilitiesString).ToArray();
 
-					var inputSourcePossibleValues = ParseInputSourcePossibleValues(capabilitiesString).ToArray();
+
 					return new MonitorCapability(
 						isHighLevelBrightnessSupported: isHighLevelSupported,
 						isLowLevelBrightnessSupported: vcpCodes.Contains((byte)VcpCode.Luminance),

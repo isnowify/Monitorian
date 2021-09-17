@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,12 +17,12 @@ namespace Monitorian.Core.ViewModels
 		public SettingsCore Settings => _controller.Settings;
 
 		private IMonitor _monitor;
-
+		private readonly InputSourceItemHandler _inputSourceItemHandler;
 		public MonitorViewModel(AppControllerCore controller, IMonitor monitor)
 		{
 			this._controller = controller ?? throw new ArgumentNullException(nameof(controller));
 			this._monitor = monitor ?? throw new ArgumentNullException(nameof(monitor));
-
+			_inputSourceItemHandler = new InputSourceItemHandler();
 			LoadCustomization();
 		}
 
@@ -88,6 +88,19 @@ namespace Monitorian.Core.ViewModels
 			set => SetPropertyValue(ref _isRangeChanging, value);
 		}
 		private bool _isRangeChanging = false;
+
+		public bool IsInputSourceSwitching
+		{
+			get => _isInputSourceSwitching && IsInputSourceSwitchSupported;
+			set {
+				if (SetPropertyValue(ref _isInputSourceSwitching, value) && value)
+				{
+					UpdateInputSource();
+					GetInputSourceItems();
+				} }
+		}
+
+		private bool _isInputSourceSwitching = false;
 
 		/// <summary>
 		/// Lowest brightness in the range of brightness
@@ -347,6 +360,146 @@ namespace Monitorian.Core.ViewModels
 
 		#endregion
 
+		#region InputSource
+
+		public bool UpdateInputSource()
+		{
+			AccessResult result;
+			lock (_lock)
+			{
+				result = _monitor.UpdateInputSource();
+			}
+
+			switch (result.Status)
+			{
+				case AccessStatus.Succeeded:
+					RaisePropertyChanged(nameof(InputSource));
+					OnSucceeded();
+					return true;
+
+				default:
+					_controller.OnMonitorAccessFailed(result);
+
+					switch (result.Status)
+					{
+						case AccessStatus.NoLongerExist:
+							_controller.OnMonitorsChangeFound();
+							break;
+					}
+					OnFailed();
+					return false;
+			}
+		}
+
+		public int InputSource
+		{
+			get => _monitor.InputSource;
+			set
+			{
+				if (_monitor.InputSource == value)
+					return;
+
+				SetInputSource(value);
+
+				if (IsSelected)
+					_controller.SaveMonitorUserChanged(this);
+			}
+		}
+		private void GetInputSourceItems()
+		{
+			if (_monitor.IsInputSourceSupported)
+			{
+				_inputSourceItemHandler.CleanAll();
+				int currentInputSourceId = -1;
+				foreach (var value in _monitor.InputSourcePossibleValues)
+				{
+					AddInputSourceItem(value);
+					if (_monitor.InputSource == value) currentInputSourceId = value;
+				}
+				if (currentInputSourceId != -1)
+				{
+					String currentInputSourceName =
+						Enum.GetName(typeof(MonitorConfiguration.InputSource), currentInputSourceId);
+					SelectedSource = new InputSourceItem((byte)currentInputSourceId,currentInputSourceName);
+				}
+
+			}
+		}
+
+
+
+		public ObservableCollection<InputSourceItem> InputSourceItems
+		{
+			get { return _inputSourceItemHandler.InputSourceItems; }
+		}
+
+		private InputSourceItem _SelectedSource;
+		public InputSourceItem SelectedSource
+		{
+			get => _SelectedSource;
+			set
+			{
+				if (SetPropertyValue(ref _SelectedSource, value)&&_isInputSourceSwitching)
+					SetInputSource(value.InputSourceId);
+
+			}
+		}
+
+		private void AddInputSourceItem(byte inputSourceId)
+		{
+			String inputSourceName = Enum.GetName(typeof(MonitorConfiguration.InputSource), inputSourceId);
+			InputSourceItem inputSourceItem = new InputSourceItem(inputSourceId, inputSourceName);
+			_inputSourceItemHandler.Add(inputSourceItem);
+		}
+
+		public ICommand OnInputSourceButtonClickedCommand
+		{
+			get { return new DelegateCommand(OnInputSourceButtonClicked); }
+		}
+
+
+		private void OnInputSourceButtonClicked(object sender)
+		{
+			InputSourceSelectionWindow inputSourceMenu = new InputSourceSelectionWindow(this);
+			inputSourceMenu.Show();
+		}
+
+		public bool IsInputSourceSwitchSupported => _monitor.IsInputSourceSupported;
+
+
+		private bool SetInputSource(int inputSource)
+		{
+			AccessResult result;
+			lock (_lock)
+			{
+				result = _monitor.SetInputSource(inputSource);
+			}
+
+			switch (result.Status)
+			{
+				case AccessStatus.Succeeded:
+					RaisePropertyChanged(nameof(InputSource));
+					OnSucceeded();
+					return true;
+
+				default:
+					_controller.OnMonitorAccessFailed(result);
+
+					switch (result.Status)
+					{
+						case AccessStatus.DdcFailed:
+						case AccessStatus.TransmissionFailed:
+						case AccessStatus.NoLongerExist:
+							_controller.OnMonitorsChangeFound();
+							break;
+					}
+					OnFailed();
+					return false;
+			}
+		}
+
+		#endregion
+
 		#region Controllable
 
 		public bool IsReachable => _monitor.IsReachable;
@@ -494,4 +647,82 @@ namespace Monitorian.Core.ViewModels
 
 		#endregion
 	}
+
+	public class DelegateCommand : ICommand
+	{
+		private readonly Predicate<object> _canExecute;
+		private readonly Action<object> _execute;
+
+		public event EventHandler CanExecuteChanged;
+
+		public DelegateCommand(Action<object> execute)
+			: this(execute, null)
+		{
+		}
+
+		public DelegateCommand(Action<object> execute,
+			Predicate<object> canExecute)
+		{
+			_execute = execute;
+			_canExecute = canExecute;
+		}
+
+		public bool CanExecute(object parameter)
+		{
+			if (_canExecute == null)
+			{
+				return true;
+			}
+
+			return _canExecute(parameter);
+		}
+
+		public void Execute(object parameter)
+		{
+			_execute(parameter);
+		}
+
+		public void RaiseCanExecuteChanged()
+		{
+			if( CanExecuteChanged != null )
+			{
+				CanExecuteChanged(this, EventArgs.Empty);
+			}
+		}
+	}
+
+
+	//Available Input Source in selection menu
+	public class InputSourceItem
+	{
+		public InputSourceItem(byte inputSourceId, string inputSourceName)
+		{
+			this.InputSourceId = inputSourceId;
+			this.InputSourceName = inputSourceName;
+		}
+		public byte InputSourceId { get; }
+		public string InputSourceName { get;  }
+	}
+
+	public class InputSourceItemHandler
+	{
+		public InputSourceItemHandler()
+		{
+			InputSourceItems = new ObservableCollection<InputSourceItem>();
+		}
+
+		public ObservableCollection<InputSourceItem> InputSourceItems { get; private set; }
+
+		public void Add(InputSourceItem item)
+		{
+			InputSourceItems.Add(item);
+		}
+
+		public void CleanAll()
+		{
+			InputSourceItems = new ObservableCollection<InputSourceItem>();
+		}
+	}
+
+
 }

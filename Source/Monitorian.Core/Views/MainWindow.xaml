@@ -1,4 +1,4 @@
-﻿<Window x:Class="Monitorian.Core.Views.MainWindow"
+<Window x:Class="Monitorian.Core.Views.MainWindow"
 		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
@@ -554,7 +554,9 @@
 				</Trigger>
 			</Style.Triggers>
 		</Style>
-
+		<Style x:Key="InoutSourceButtonStyle" TargetType="{x:Type controls:IconButton}" BasedOn="{StaticResource IconButtonStyle}">
+			<Setter Property="StrokeIconData" Value="M 0,3 L 0,0 10,0 10,3 M 0,7 L 0,10 10,10 10,7"/>
+		</Style>
 		<Style x:Key="UnisonButtonStyle" TargetType="{x:Type controls:IconButton}" BasedOn="{StaticResource IconButtonStyle}">
 			<Setter Property="StrokeIconData" Value="M 0,3 L 0,0 10,0 10,3 M 0,7 L 0,10 10,10 10,7"/>
 		</Style>
@@ -625,6 +627,15 @@
 							<StackPanel Grid.Column="1"
 										VerticalAlignment="Top"
 										Orientation="Horizontal">
+								<!-- Input Source -->
+								<controls:IconButton Style="{StaticResource InoutSourceButtonStyle}"
+								                     ToolTip="{x:Static properties:Resources.SwitchInputSource}"
+								                     IsEnabled="{Binding IsInputSourceSwitchSupported, Mode=OneWay}"
+								                     Visibility="{Binding Settings.EnablesInputSource, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverterKey}}"
+								                     IsChecked="{Binding IsInputSourceSwitching, Mode=TwoWay}"
+								                     Command="{Binding OnInputSourceButtonClickedCommand }"/>
+								                     <!-- Click="OnInputSourceButtonClicked"/> -->
+
 								<!-- Unison -->
 								<controls:IconButton Style="{StaticResource UnisonButtonStyle}"
 													 ToolTip="{x:Static properties:Resources.MoveUnison}"
